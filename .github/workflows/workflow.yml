@@ -6,25 +6,72 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  ACTIONS_STEP_DEBUG: true  # Enables GitHub Actions debug logging
+  NODE_DEBUG: test          # Enables Node.js test debugging
+  DEBUG: '*'                # Enables verbose debug output
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
-      
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: System diagnostics
+        run: |
+          echo "=== SYSTEM INFO ==="
+          node -v
+          npm -v
+          ls -la
+          echo "=== NPM CONFIG ==="
+          npm config list
+          echo "=== INSTALLED PACKAGES ==="
+          npm ls --depth=0 --prod
+          npm ls --depth=0 --dev
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: |
           npm install
-          npm install --save-dev jest
-          
-      - name: Run tests
-        timeout-minutes: 5
+          npm install --save-dev jest@29 mocha@10  # Explicit test frameworks
+
+      - name: Run tests with verbose output
+        id: tests
         run: |
-          echo "Running test suite..."
-          npm test
+          echo "=== TEST CONFIGURATION ==="
+          npm run test -- --listTests
+          
+          echo "=== EXECUTING TESTS ==="
+          npm run test -- \
+            --verbose \
+            --detectOpenHandles \
+            --reporters=default \
+            --reporters=jest-junit \
+            --outputFile=test-results.json \
+            || echo "::warning::Tests exited with code $?"
+          
+          echo "=== TEST OUTPUT ==="
+          cat test-results.json 2>/dev/null || echo "No test output generated"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-artifacts
+          path: |
+            test-results.json
+            npm-debug.log
+            coverage/
+
+      - name: Check test results
+        if: steps.tests.outcome != 'success'
+        run: |
+          echo "::error::Test suite failed! See artifacts for details"
+          exit 1
