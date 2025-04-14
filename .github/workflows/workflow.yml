@@ -1,17 +1,19 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
-      - develop
   pull_request:
     branches:
       - main
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    env:
+      FLASK_APP: service
+      PYTHONPATH: /home/runner/work/ci-cd-final-projects/ci-cd-final-projects
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -19,15 +21,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install nose
-        run: pip install nose
-
-      - name: Run unit tests with nosetests
-        run: nosetests -v --no-config
+      - name: Run tests
+        run: |
+          pytest -v
