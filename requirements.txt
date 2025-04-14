@@ -11,3 +11,4 @@ pinocchio==0.4.3
 coverage==6.3.2
 httpie==3.2.1
 pytest==8.3.5
+pytest==8.3.5
