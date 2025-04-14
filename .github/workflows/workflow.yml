@@ -1,28 +1,31 @@
-name: {name of workflow}
+name: Python CI
 
 on:
   push:
-    branches: {array of branches}
+    branches: [ "main", "develop" ]
   pull_request:
-    branches: {array of branches}
+    branches: [ "main", "develop" ]
 
 jobs:
-  build:
-    runs-on: {placeholder}
-    container: {placeholder}
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+    
     steps:
-      - name: {placeholder}
-        uses: {placeholder}
-        
-      - name: {placeholder}
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          
+      - name: Install dependencies
         run: |
-          {first command}
-          {second command}
-
-      - name: {placeholder}
-        run: |
-          {first command}
-          {second command}
-
-      - name: Run unit tests with nose
-        run: {insert command here}
+          python -m pip install --upgrade pip
+          pip install nose
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          
+      - name: Run tests with nose
+        run: nosetests tests/ --with-coverage --cover-package=your_package_name
