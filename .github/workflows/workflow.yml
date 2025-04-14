@@ -1,19 +1,27 @@
-name: {name of workflow}
+name: CI Pipeline
 
 on:
   push:
-    branches: {array of branches}
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: {array of branches}
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: {placeholder}
-    container: {placeholder}
+    runs-on: ubuntu-latest
+    container: node:16
     steps:
-      - name: {placeholder}
-        uses: {placeholder}
-      - name: {placeholder}
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
         run: |
-        {first command}
-        {second command}
+          npm install
+          npm audit fix
+
+      - name: Run tests
+        run: |
+          npm test
