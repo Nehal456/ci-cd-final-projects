@@ -12,17 +12,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: python:3.9
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install nose
+        run: pip install nose
+
       - name: Run unit tests with nosetests
-        run: |
-          pip install nose
-          nosetests -v --no-config
+        run: nosetests -v --no-config
