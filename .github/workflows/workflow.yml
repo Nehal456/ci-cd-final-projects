@@ -1,77 +1,28 @@
-name: CI Pipeline
+name: {name of workflow}
 
 on:
   push:
-    branches: [main]
+    branches: {array of branches}
   pull_request:
-    branches: [main]
-
-env:
-  ACTIONS_STEP_DEBUG: true  # Enables GitHub Actions debug logging
-  NODE_DEBUG: test          # Enables Node.js test debugging
-  DEBUG: '*'                # Enables verbose debug output
+    branches: {array of branches}
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    
+    runs-on: {placeholder}
+    container: {placeholder}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: System diagnostics
+      - name: {placeholder}
+        uses: {placeholder}
+        
+      - name: {placeholder}
         run: |
-          echo "=== SYSTEM INFO ==="
-          node -v
-          npm -v
-          ls -la
-          echo "=== NPM CONFIG ==="
-          npm config list
-          echo "=== INSTALLED PACKAGES ==="
-          npm ls --depth=0 --prod
-          npm ls --depth=0 --dev
+          {first command}
+          {second command}
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-          cache: 'npm'
-
-      - name: Install dependencies
+      - name: {placeholder}
         run: |
-          npm install
-          npm install --save-dev jest@29 mocha@10  # Explicit test frameworks
+          {first command}
+          {second command}
 
-      - name: Run tests with verbose output
-        id: tests
-        run: |
-          echo "=== TEST CONFIGURATION ==="
-          npm run test -- --listTests
-          
-          echo "=== EXECUTING TESTS ==="
-          npm run test -- \
-            --verbose \
-            --detectOpenHandles \
-            --reporters=default \
-            --reporters=jest-junit \
-            --outputFile=test-results.json \
-            || echo "::warning::Tests exited with code $?"
-          
-          echo "=== TEST OUTPUT ==="
-          cat test-results.json 2>/dev/null || echo "No test output generated"
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-artifacts
-          path: |
-            test-results.json
-            npm-debug.log
-            coverage/
-
-      - name: Check test results
-        if: steps.tests.outcome != 'success'
-        run: |
-          echo "::error::Test suite failed! See artifacts for details"
-          exit 1
+      - name: Run unit tests with nose
+        run: {insert command here}
