@@ -1,19 +1,12 @@
-"""
-Service Package
-"""
+# service/__init__.py
 from flask import Flask
+from service.common.log_handlers import init_logging
 
+# Create the Flask app instance
 app = Flask(__name__)
 
-# Imports must happen after Flask app creation
-# pylint: disable=wrong-import-position
-from service import routes  # noqa: E402
-from service.common import log_handlers  # noqa: E402
-# pylint: enable=wrong-import-position
+# Initialize logging
+init_logging(app, "gunicorn.error")
 
-log_handlers.init_logging(app, "gunicorn.error")
-
-app.logger.info(70 * "*")
-app.logger.info("  S E R V I C E   R U N N I N G  ".center(70, "*"))
-app.logger.info(70 * "*")
-
+# Import routes to register them
+import service.routes  # Ensure routes are registered

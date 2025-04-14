@@ -1,16 +1,13 @@
-from flask import jsonify
-from service import app  # Import the Flask app
+# service/common/log_handlers.py
+import logging
 
-
-@app.route('/some-endpoint', methods=['GET'])
-def some_endpoint():
-    return jsonify({
-        "message": "Success"
-    }), 200
-
-
-@app.route('/error-endpoint', methods=['GET'])
-def error_endpoint():
-    return jsonify({
-        "error": "Invalid request, missing required fields."
-    }), 400
+def init_logging(app, logger_name):
+    """Initialize logging for the application."""
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    app.logger.handlers = logger.handlers
+    app.logger.setLevel(logger.level)
