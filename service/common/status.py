@@ -1,6 +1,18 @@
-# service/common/status.py
-HTTP_200_OK = 200
-HTTP_201_CREATED = 201
-HTTP_204_NO_CONTENT = 204  # Add this line
-HTTP_404_NOT_FOUND = 404
-HTTP_409_CONFLICT = 409
+"""
+HTTP Status codes
+Provides common HTTP status codes for the service
+"""
+
+
+class HTTPStatus:
+    """Enumeration of HTTP status codes"""
+
+    OK = 200
+    CREATED = 201
+    ACCEPTED = 202
+    BAD_REQUEST = 400
+    UNAUTHORIZED = 401
+    FORBIDDEN = 403
+    NOT_FOUND = 404
+    CONFLICT = 409
+    INTERNAL_SERVER_ERROR = 500

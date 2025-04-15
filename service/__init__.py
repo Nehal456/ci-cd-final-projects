@@ -1,12 +1,9 @@
-# service/__init__.py
+"""
+Service package initialization
+"""
 from flask import Flask
-from service.common.log_handlers import init_logging
+import service.routes  # This should be at the top with other imports
 
-# Create the Flask app instance
 app = Flask(__name__)
 
-# Initialize logging
-init_logging(app, "gunicorn.error")
-
-# Import routes to register them
-import service.routes  # Ensure routes are registered
+# Rest of your initialization code

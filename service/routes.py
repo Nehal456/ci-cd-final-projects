@@ -1,3 +1,4 @@
+"""This module initializes the Flask application."""
 # service/routes.py
 from service import app
 from service.common.utils import COUNTERS

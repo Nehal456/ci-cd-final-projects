@@ -1,6 +1,6 @@
 # tests/test_routes.py
 import pytest
-from service.common import status  # HTTP Status Codes
+from service.common.status import status  # HTTP Status Codes
 from service import app  # Import the Flask app instance from __init__.py
 from service.common.utils import reset_counters  # Import reset_counters
 
