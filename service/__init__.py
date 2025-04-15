@@ -1,9 +1,10 @@
-"""
-Service package initialization
-"""
 from flask import Flask
-import service.routes  # This should be at the top with other imports
+from service.routes import bp as routes_bp
 
+# Initialize the Flask application
 app = Flask(__name__)
 
-# Rest of your initialization code
+# Register the blueprint with the Flask app
+app.register_blueprint(routes_bp, url_prefix="/api")
+
+# Any other setup can follow here
