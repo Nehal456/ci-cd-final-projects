@@ -1,49 +1,45 @@
-from flask import Blueprint
-from service.common.utils import COUNTERS
+from flask import Blueprint, jsonify
+from service.common.status import HTTPStatus
 
-bp = Blueprint("routes", __name__)
+# Initialize blueprint
+bp = Blueprint('counters', __name__, url_prefix='/api')
 
-@bp.route("/", methods=["GET"])
+# Initialize counters dictionary
+counters = {}
+
+@bp.route('/')
 def index():
-    """Root endpoint."""
-    return {"message": "Welcome to the Counter API"}, 200
+    return jsonify({"message": "Welcome to the Counter API"}), HTTPStatus.OK
 
-@bp.route("/health", methods=["GET"])
+@bp.route('/health')
 def health():
-    """Health check endpoint."""
-    return {"status": "OK"}, 200
+    return jsonify({"status": "OK"}), HTTPStatus.OK
 
-@bp.route("/counters/<name>", methods=["POST"])
+@bp.route('/counters/<name>', methods=['POST'])
 def create_counter(name):
-    """Create a new counter."""
-    if name in COUNTERS:
-        return {"error": "Counter already exists"}, 409
-    COUNTERS[name] = 0
-    return {"name": name, "counter": COUNTERS[name]}, 201
+    counters[name] = 0
+    return jsonify({"name": name, "counter": 0}), HTTPStatus.CREATED
 
-@bp.route("/counters", methods=["GET"])
+@bp.route('/counters', methods=['GET'])
 def list_counters():
-    """List all counters."""
-    return COUNTERS, 200
+    return jsonify(counters), HTTPStatus.OK
 
-@bp.route("/counters/<name>", methods=["GET"])
+@bp.route('/counters/<name>', methods=['GET'])
 def read_counter(name):
-    """Read a specific counter."""
-    if name not in COUNTERS:
-        return {"error": "Counter not found"}, 404
-    return {"name": name, "counter": COUNTERS[name]}, 200
+    if name not in counters:
+        return jsonify({"error": "Counter not found"}), HTTPStatus.NOT_FOUND
+    return jsonify({"name": name, "counter": counters[name]}), HTTPStatus.OK
 
-@bp.route("/counters/<name>", methods=["PUT"])
+@bp.route('/counters/<name>', methods=['PUT'])
 def update_counter(name):
-    """Update (increment) a specific counter."""
-    if name not in COUNTERS:
-        return {"error": "Counter not found"}, 404
-    COUNTERS[name] += 1
-    return {"name": name, "counter": COUNTERS[name]}, 200
+    if name not in counters:
+        return jsonify({"error": "Counter not found"}), HTTPStatus.NOT_FOUND
+    counters[name] += 1
+    return jsonify({"name": name, "counter": counters[name]}), HTTPStatus.OK
 
-@bp.route("/counters/<name>", methods=["DELETE"])
+@bp.route('/counters/<name>', methods=['DELETE'])
 def delete_counter(name):
-    """Delete a specific counter."""
-    if name in COUNTERS:
-        del COUNTERS[name]
-    return "", 204
+    if name not in counters:
+        return jsonify({"error": "Counter not found"}), HTTPStatus.NOT_FOUND
+    del counters[name]
+    return '', HTTPStatus.NO_CONTENT
