@@ -1,10 +1,14 @@
 from flask import Flask
-from service.routes import bp as routes_bp
 
-# Initialize the Flask application
-app = Flask(__name__)
+def create_app():
+    """Factory function to create and configure the Flask app"""
+    app = Flask(__name__)
+    
+    # Import and register blueprints
+    from service.routes import bp as routes_bp
+    app.register_blueprint(routes_bp, url_prefix="/api")
+    
+    return app
 
-# Register the blueprint with the Flask app
-app.register_blueprint(routes_bp, url_prefix="/api")
-
-# Any other setup can follow here
+# Create app instance
+app = create_app()
