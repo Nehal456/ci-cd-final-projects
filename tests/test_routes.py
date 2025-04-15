@@ -1,36 +1,62 @@
 import pytest
 from service.common.status import HTTPStatus
-from service import create_app  # Import the factory function
+from service import create_app
+from service.routes import counters  # Import counters directly
 from service.common.utils import reset_counters
 
 @pytest.fixture
 def client():
     """Fixture to create a test client for the Flask app."""
-    app = create_app()  # Create new app instance
+    app = create_app()
     reset_counters()
     app.testing = True
-    
-    # Clear counters before each test
-    from service.routes import counters
-    counters.clear()
-    
+    counters.clear()  # Clear counters before each test
     return app.test_client()
 
 def test_index(client):
     """Test the index endpoint."""
-    resp = client.get("/api/")  # Note the /api prefix
+    resp = client.get("/api/")
     assert resp.status_code == HTTPStatus.OK
     assert resp.get_json() == {"message": "Welcome to the Counter API"}
 
 def test_health(client):
     """Test health check endpoint."""
-    resp = client.get("/api/health")  # Note the /api prefix
+    resp = client.get("/api/health")
     assert resp.status_code == HTTPStatus.OK
     assert resp.get_json() == {"status": "OK"}
 
-# Update all other test routes to include /api prefix
 def test_create_counters(client):
-    resp = client.post("/api/counters/foo")  # Note /api prefix
+    """Test counter creation."""
+    resp = client.post("/api/counters/test-counter")
     assert resp.status_code == HTTPStatus.CREATED
+    assert resp.get_json() == {"name": "test-counter", "counter": 0}
+    assert "test-counter" in counters
 
-# ... continue with other tests, all using /api prefix ...
+def test_list_counters(client):
+    """Test listing counters."""
+    client.post("/api/counters/test-counter")
+    resp = client.get("/api/counters")
+    assert resp.status_code == HTTPStatus.OK
+    assert resp.get_json() == {"test-counter": 0}
+
+def test_read_counter(client):
+    """Test reading a counter."""
+    client.post("/api/counters/test-counter")
+    resp = client.get("/api/counters/test-counter")
+    assert resp.status_code == HTTPStatus.OK
+    assert resp.get_json() == {"name": "test-counter", "counter": 0}
+
+def test_update_counter(client):
+    """Test updating a counter."""
+    client.post("/api/counters/test-counter")
+    resp = client.put("/api/counters/test-counter")
+    assert resp.status_code == HTTPStatus.OK
+    assert resp.get_json() == {"name": "test-counter", "counter": 1}
+
+def test_delete_counter(client):
+    """Test deleting a counter."""
+    client.post("/api/counters/test-counter")
+    resp = client.delete("/api/counters/test-counter")
+    assert resp.status_code == HTTPStatus.NO_CONTENT
+    resp = client.get("/api/counters/test-counter")
+    assert resp.status_code == HTTPStatus.NOT_FOUND
