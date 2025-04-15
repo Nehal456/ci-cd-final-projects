@@ -1,42 +1,78 @@
-from flask import Blueprint, jsonify
-from service.common.status import HTTPStatus
+import pytest
+from service.common.status import HTTPStatus  # Updated import
+from service import app
+from service.common.utils import reset_counters
 
-counters_blueprint = Blueprint('counters', __name__)
-counters = {}  # Simple in-memory storage
 
-@counters_blueprint.route('/')
-def index():
-    return jsonify({"message": "Welcome to the Counter API"}), HTTPStatus.OK
+@pytest.fixture
+def client():
+    """Fixture to create a test client for the Flask app."""
+    reset_counters()
+    app.testing = True
+    return app.test_client()
 
-@counters_blueprint.route('/health')
-def health():
-    return jsonify({"status": "OK"}), HTTPStatus.OK
 
-@counters_blueprint.route('/counters/<name>', methods=['POST'])
-def create_counter(name):
-    counters[name] = 0
-    return jsonify({"name": name, "counter": 0}), HTTPStatus.CREATED
+def test_index(client):
+    """It should call the index endpoint."""
+    resp = client.get("/")
+    assert resp.status_code == HTTPStatus.OK
+    assert resp.get_json() == {"message": "Welcome to the Counter API"}
 
-@counters_blueprint.route('/counters', methods=['GET'])
-def list_counters():
-    return jsonify(counters), HTTPStatus.OK
 
-@counters_blueprint.route('/counters/<name>', methods=['GET'])
-def read_counter(name):
-    if name not in counters:
-        return jsonify({"error": "Counter not found"}), HTTPStatus.NOT_FOUND
-    return jsonify({"name": name, "counter": counters[name]}), HTTPStatus.OK
+def test_health(client):
+    """It should be healthy."""
+    resp = client.get("/health")
+    assert resp.status_code == HTTPStatus.OK
+    assert resp.get_json() == {"status": "OK"}
 
-@counters_blueprint.route('/counters/<name>', methods=['PUT'])
-def update_counter(name):
-    if name not in counters:
-        return jsonify({"error": "Counter not found"}), HTTPStatus.NOT_FOUND
-    counters[name] += 1
-    return jsonify({"name": name, "counter": counters[name]}), HTTPStatus.OK
 
-@counters_blueprint.route('/counters/<name>', methods=['DELETE'])
-def delete_counter(name):
-    if name not in counters:
-        return jsonify({"error": "Counter not found"}), HTTPStatus.NOT_FOUND
-    del counters[name]
-    return '', HTTPStatus.NO_CONTENT
+def test_create_counters(client):
+    """It should create a counter."""
+    name = "foo"
+    resp = client.post(f"/counters/{name}")
+    assert resp.status_code == HTTPStatus.CREATED
+    data = resp.get_json()
+    assert data["name"] == name
+    assert data["counter"] == 0
+
+
+def test_list_counters(client):
+    """It should list all counters."""
+    client.post("/counters/foo")  # Create a counter
+    resp = client.get("/counters")
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.get_json()
+    assert len(data) == 1
+    assert "foo" in data
+
+
+def test_read_counter(client):
+    """It should read a specific counter."""
+    name = "foo"
+    client.post(f"/counters/{name}")  # Create a counter
+    resp = client.get(f"/counters/{name}")
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.get_json()
+    assert data["name"] == name
+    assert data["counter"] == 0
+
+
+def test_update_counter(client):
+    """It should update (increment) a specific counter."""
+    name = "foo"
+    client.post(f"/counters/{name}")  # Create a counter
+    resp = client.put(f"/counters/{name}")
+    assert resp.status_code == HTTPStatus.OK
+    data = resp.get_json()
+    assert data["name"] == name
+    assert data["counter"] == 1
+
+
+def test_delete_counter(client):
+    """It should delete a counter."""
+    name = "foo"
+    client.post(f"/counters/{name}")  # Create a counter
+    resp = client.delete(f"/counters/{name}")
+    assert resp.status_code == HTTPStatus.NO_CONTENT
+    resp = client.get(f"/counters/{name}")
+    assert resp.status_code == HTTPStatus.NOT_FOUND
